@@ -1,0 +1,39 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title></title>
+    <script>
+	function toggleChat(){
+		var botIco = document.getElementById("mebot_botIco");
+		var botChat = document.getElementById("mebot_chat");
+		var floatingDiv = document.getElementById("floatingDiv");
+
+		if(botIco.style.visibility=='visible') {
+			botIco.style.visibility='hidden';
+			botChat.style.visibility='visible';
+			floatingDiv.style.visibility='visible';
+		}
+		else {
+			botChat.style.visibility='hidden';
+			floatingDiv.style.visibility='hidden';
+			botIco.style.visibility='visible';
+		}
+	}
+    </script>
+</head>
+<body>
+
+    <div id="botDiv" onclick="toggleChat(); return false;">
+        <div id="floatingDiv" style="height: 100px; position: fixed; display: block; right: 10px; bottom: 450px; visibility: hidden; z-index: 10000; width: 500px;"></div>
+        <iframe id="mebot_chat" src="https://imccrmbot.azurewebsites.net/HTMLPage1.html" style="height: 620px;width:400px; background-color:mintcream;position: fixed; display: block; right: 20px; bottom: 10px; visibility: hidden; z-index: 1000;border:inherit"></iframe>
+        <div id="mebot_botIco" style="display: block; right: 30px; width: 70px; height: 70px; background-image: url(&quot;https://imccrmbot.azurewebsites.net/live_chat_icon-02.png&quot;); border-radius: 25px; position: fixed; bottom: 10px; background-size: contain; visibility: visible;"></div>
+    </div>
+   
+
+</body>
+</html>
+
+
+
