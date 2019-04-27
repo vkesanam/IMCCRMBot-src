@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-
+using System.Xml.Linq;
+using LuisBot;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
@@ -26,12 +28,30 @@ namespace Microsoft.Bot.Sample.LuisBot
         public string doctorname;
         private string name;
         public string specialist;
+        public static string host = "https://api.microsofttranslator.com";
+        public static string path = "/V2/Http.svc/Translate";
+
+        // NOTE: Replace this example key with a valid subscription key.
+        public static string key = "830fda84bdce4810a78cc508745a2f9e";
 
         public BasicLuisDialog() : base(new LuisService(new LuisModelAttribute(
             ConfigurationManager.AppSettings["LuisAppId"], 
             ConfigurationManager.AppSettings["LuisAPIKey"], 
             domain: ConfigurationManager.AppSettings["LuisAPIHostName"])))
         {
+        }
+
+        private async Task<string> Translation(string text)
+        {
+            HttpClient client = new HttpClient();
+            client.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", key);
+            string uri = host + path + "?from=ar-ae&to=en-us&text=" + System.Net.WebUtility.UrlEncode(text);
+
+            HttpResponseMessage response = await client.GetAsync(uri);
+
+            string result = await response.Content.ReadAsStringAsync();
+            var content = XElement.Parse(result).Value;
+            return content;
         }
 
         [LuisIntent("None")]
@@ -54,11 +74,25 @@ namespace Microsoft.Bot.Sample.LuisBot
                 string message = "Glad to talk to you. Welcome to Virtual Customer Service.";
                 await context.PostAsync(message);
 
-                PromptDialog.Text(
-                context: context,
-                resume: CustomerNameFromGreeting,
-                prompt: "May i know your Name please?",
-                retry: "Sorry, I don't understand that.");
+                var feedback = ((Activity)context.Activity).CreateReply("Which Language you want to prefer?");
+
+                feedback.SuggestedActions = new SuggestedActions()
+                {
+                    Actions = new List<CardAction>()
+                {
+                    //new CardAction(){ Title = "👍", Type=ActionTypes.PostBack, Value=$"yes-positive-feedback" },
+                    //new CardAction(){ Title = "👎", Type=ActionTypes.PostBack, Value=$"no-negative-feedback" }
+
+                     new CardAction(){ Title = "English", Type=ActionTypes.PostBack, Value=$"English" },
+                    new CardAction(){ Title = "Arabic", Type=ActionTypes.PostBack, Value=$"Arabic" }
+                }
+                };
+
+                await context.PostAsync(feedback);
+
+                context.Wait(CustomerName);
+
+               
             }
             else
             {
@@ -66,12 +100,41 @@ namespace Microsoft.Bot.Sample.LuisBot
                 await context.PostAsync(message);
             }
         }
+        public async Task CustomerName(IDialogContext context, IAwaitable<IMessageActivity> aregument)
+        {
+            var result = await aregument;
+            if(result.Text.Contains("English"))
+            {
+                PromptDialog.Text(
+              context: context,
+              resume: CustomerNameFromGreeting,
+              prompt: "May i know your Name please?",
+              retry: "Sorry, I don't understand that.");
+            }
+            else
+            {
+                PromptDialog.Text(
+             context: context,
+             resume: CustomerNameFromGreetingArabic,
+             prompt: "هل لي ان اعرف اسمك من فضلك ؟",
+             retry: "Sorry, I don't understand that.");
+            }
+           
+        }
         public async Task CustomerNameFromGreeting(IDialogContext context, IAwaitable<string> result)
         {
             string response = await result;
             customerName = response;
 
             string message = "Thanks " + customerName + ".Tell me. How i can help you?";
+            await context.PostAsync(message);
+        }
+        public async Task CustomerNameFromGreetingArabic(IDialogContext context, IAwaitable<string> result)
+        {
+            string response = await result;
+            customerName = response;
+
+            string message = "شكرا أخبريني كيف يمكنني مساعدتك ؟";
             await context.PostAsync(message);
         }
         [LuisIntent("CASE")]
@@ -130,6 +193,9 @@ namespace Microsoft.Bot.Sample.LuisBot
                 // DEMO: I've added this for demonstration purposes, so we have time to see the "Is Typing" integration in the UI. Else the bot is too quick for us :)
                 Thread.Sleep(2500);
             }
+
+            CRMConnection.CreateCase(complaint, customerName, phone, email);
+
             var feedback = ((Activity)context.Activity).CreateReply("Is there anything else that I could help?");
 
             feedback.SuggestedActions = new SuggestedActions()
