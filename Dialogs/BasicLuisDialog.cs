@@ -69,8 +69,8 @@ namespace Microsoft.Bot.Sample.LuisBot
         public async Task GreetingIntent(IDialogContext context, LuisResult result)
         {
             //await this.ShowLuisResult(context, result);
-            if (customerName == null)
-            {
+            //if (customerName == null)
+            //{
                 string message = "Glad to talk to you. Welcome to Virtual Customer Service.";
                 await context.PostAsync(message);
 
@@ -93,12 +93,12 @@ namespace Microsoft.Bot.Sample.LuisBot
                 context.Wait(CustomerName);
 
                
-            }
-            else
-            {
-                string message = "Tell me " + customerName + ". How i can help you?";
-                await context.PostAsync(message);
-            }
+            //}
+            //else
+            //{
+            //    string message = "Tell me " + customerName + ". How i can help you?";
+            //    await context.PostAsync(message);
+            //}
         }
         public async Task CustomerName(IDialogContext context, IAwaitable<IMessageActivity> aregument)
         {
