@@ -123,13 +123,71 @@ namespace Microsoft.Bot.Sample.LuisBot
         }
         public async Task CustomerNameFromGreeting(IDialogContext context, IAwaitable<string> result)
         {
-            string response = await result;
-            customerName = response;
+            var feedback = ((Activity)context.Activity).CreateReply("Which Service you want to prefer?");
 
-            string message = "Thanks " + customerName + ".Tell me. How i can help you?";
-            await context.PostAsync(message);
+            feedback.SuggestedActions = new SuggestedActions()
+            {
+                Actions = new List<CardAction>()
+                {
+                    //new CardAction(){ Title = "👍", Type=ActionTypes.PostBack, Value=$"yes-positive-feedback" },
+                    //new CardAction(){ Title = "👎", Type=ActionTypes.PostBack, Value=$"no-negative-feedback" }
+
+                     new CardAction(){ Title = "Appointment", Type=ActionTypes.PostBack, Value=$"Appointment" },
+                    new CardAction(){ Title = "Location", Type=ActionTypes.PostBack, Value=$"Location" },
+                     new CardAction(){ Title = "Customer Support", Type=ActionTypes.PostBack, Value=$"Service" }
+                }
+            };
+
+            await context.PostAsync(feedback);
+
+            context.Wait(Main);
         }
-        public async Task CustomerNameFromGreetingArabic(IDialogContext context, IAwaitable<string> result)
+        public async Task Main(IDialogContext context, IAwaitable<IMessageActivity> aregument)
+        {
+            var result = await aregument;
+            if (result.Text.Contains("Appointment"))
+            {
+                var feedback = ((Activity)context.Activity).CreateReply("Please choose a specialist.");
+
+                feedback.SuggestedActions = new SuggestedActions()
+                {
+                    Actions = new List<CardAction>()
+                {
+                    //new CardAction(){ Title = "👍", Type=ActionTypes.PostBack, Value=$"yes-positive-feedback" },
+                    //new CardAction(){ Title = "👎", Type=ActionTypes.PostBack, Value=$"no-negative-feedback" }
+
+                     new CardAction(){ Title = "Allergist", Type=ActionTypes.PostBack, Value=$"Allergist" },
+                    new CardAction(){ Title = "Cardiologist", Type=ActionTypes.PostBack, Value=$"Cardiologist" },
+                      new CardAction(){ Title = "Dermatologist", Type=ActionTypes.PostBack, Value=$"Dermatologist" },
+                        new CardAction(){ Title = "Family Physician", Type=ActionTypes.PostBack, Value=$"FamilyPhysician" },
+                          new CardAction(){ Title = "Gastro Enterologist", Type=ActionTypes.PostBack, Value=$"GastroEnterologist" },
+                            new CardAction(){ Title = "Pediatrician", Type=ActionTypes.PostBack, Value=$"Pediatrician" }
+                }
+                };
+
+                await context.PostAsync(feedback);
+
+                context.Wait(AppointmentSpecialist);
+            }
+            else if (result.Text.Contains("Location"))
+            {
+                PromptDialog.Text(
+                   context: context,
+                   resume: DisplaySelectedCard,
+                   prompt: "Please let me know your location preference?",
+                   retry: "Sorry, I don't understand that."
+                           );
+            }
+            else if (result.Text.Contains("Service"))
+            {
+                PromptDialog.Text(
+            context: context,
+            resume: CustomerNameHandler,
+            prompt: "What is your complaint/suggestion?",
+            retry: "Sorry, I don't understand that.");
+            }
+        }
+                public async Task CustomerNameFromGreetingArabic(IDialogContext context, IAwaitable<string> result)
         {
             string response = await result;
             customerName = response;
