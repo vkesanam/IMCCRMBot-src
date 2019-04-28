@@ -111,7 +111,7 @@ namespace Microsoft.Bot.Sample.LuisBot
               prompt: "May i know your Name please?",
               retry: "Sorry, I don't understand that.");
             }
-            else
+            else if(result.Text.Contains("Arabic"))
             {
                 PromptDialog.Text(
              context: context,
