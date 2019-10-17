@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using LuisBot;
+using LuisBot.Dialogs;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Luis;
 using Microsoft.Bot.Builder.Luis.Models;
@@ -57,10 +58,14 @@ namespace Microsoft.Bot.Sample.LuisBot
         [LuisIntent("None")]
         public async Task NoneIntent(IDialogContext context, LuisResult result)
         {
-            //await this.ShowLuisResult(context, result);
-            string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
-            await context.PostAsync(message);
-            context.Wait(MessageReceived);
+            //string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
+            //await context.PostAsync(message);
+            //context.Wait(MessageReceived);
+            await context.Forward(new QnADialog(), ResumeAfter, context.Activity, CancellationToken.None);
+        }
+        private async Task ResumeAfter(IDialogContext context, IAwaitable<object> result)
+        {
+            context.Done<object>(null);
         }
 
         // Go to https://luis.ai and create a new intent, then train/publish your luis app.
