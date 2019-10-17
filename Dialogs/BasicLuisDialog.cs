@@ -35,6 +35,22 @@ namespace Microsoft.Bot.Sample.LuisBot
         // NOTE: Replace this example key with a valid subscription key.
         public static string key = "830fda84bdce4810a78cc508745a2f9e";
 
+        // QnA Maker global settings
+        // assumes all KBs are created with same Azure service
+        static string qnamaker_endpointKey = "6ea60bb6-c790-4e56-abbf-0a6bd96bff47";
+        static string qnamaker_resourceName = "imcqnamakerservice";
+
+        // QnA Maker Human Resources Knowledge base
+        static string HR_kbID = "01b06abf-cf9d-44fe-b668-da090a209f43";
+
+        // QnA Maker Finance Knowledge base
+        static string Finance_kbID = "<QnA Maker KNOWLEDGE BASE ID>";
+
+        // Instantiate the knowledge bases
+        public QnAMakerService hrQnAService = new QnAMakerService("https://" + qnamaker_resourceName + ".azurewebsites.net", HR_kbID, qnamaker_endpointKey);
+        //public QnAMakerService financeQnAService = new QnAMakerService("https://" + qnamaker_resourceName + ".azurewebsites.net", Finance_kbID, qnamaker_endpointKey);
+
+
         public BasicLuisDialog() : base(new LuisService(new LuisModelAttribute(
             ConfigurationManager.AppSettings["LuisAppId"], 
             ConfigurationManager.AppSettings["LuisAPIKey"], 
@@ -58,9 +74,15 @@ namespace Microsoft.Bot.Sample.LuisBot
         [LuisIntent("None")]
         public async Task NoneIntent(IDialogContext context, LuisResult result)
         {
-            string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
-            await context.PostAsync(message);
+            //string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
+            //await context.PostAsync(message);
+            //context.Wait(MessageReceived);
+
+            // Ask the HR knowledge base
+            var qnaMakerAnswer = await hrQnAService.GetAnswer(result.Query);
+            await context.PostAsync($"{qnaMakerAnswer}");
             context.Wait(MessageReceived);
+
             //await context.Forward(new QnADialog(), ResumeAfter, context.Activity, CancellationToken.None);
         }
         private async Task ResumeAfter(IDialogContext context, IAwaitable<object> result)
