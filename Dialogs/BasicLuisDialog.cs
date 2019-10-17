@@ -754,7 +754,7 @@ namespace Microsoft.Bot.Sample.LuisBot
         public async Task CancelIntent(IDialogContext context, LuisResult result)
         {
             //await this.ShowLuisResult(context, result);
-            string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
+            string message = "I'm afraid I cannot help you with that. Please try with different keywords.-Cancel";
             await context.PostAsync(message);
             context.Wait(MessageReceived);
         }
@@ -763,7 +763,7 @@ namespace Microsoft.Bot.Sample.LuisBot
         public async Task HelpIntent(IDialogContext context, LuisResult result)
         {
             //await this.ShowLuisResult(context, result);
-            string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
+            string message = "I'm afraid I cannot help you with that. Please try with different keywords.-Help";
             await context.PostAsync(message);
             context.Wait(MessageReceived);
         }
