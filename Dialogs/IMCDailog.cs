@@ -81,7 +81,7 @@ namespace LuisBot.Dialogs
         public async Task SymptomCheck(IDialogContext context, IAwaitable<string> argument)
         {
             var result = await argument;
-            SymptomID=executeParsingAPI(result);
+            string ID=executeParsingAPI(result);
 
             await context.PostAsync("Okay, let me ask you a couple of questions.");
             context.Wait(MessageReceived);
@@ -163,7 +163,7 @@ namespace LuisBot.Dialogs
 
         public async Task AgeCheck(IDialogContext context,IAwaitable<string> PatientAge)
         {
-            string Age = await PatientAge;
+            var Age = await PatientAge;
 
             var feedback = ((Activity)context.Activity).CreateReply("Are you female or male?");
 
