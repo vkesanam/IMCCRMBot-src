@@ -85,7 +85,7 @@ namespace LuisBot.Dialogs
             context.Wait(MessageReceived);
         }
 
-        private string executeParsingAPI(string result)
+        private static string executeParsingAPI(string result)
         {
             string SymptomID = "";
             try
@@ -93,8 +93,12 @@ namespace LuisBot.Dialogs
 
                 string url = "https://api.infermedica.com/v2/parse";
 
-                string postdata = "text=" +result;
-                byte[] data = Encoding.UTF8.GetBytes(postdata);
+                var jsondata = new
+                {
+                    text = "fever"
+                };
+                string inputJson = (new JavaScriptSerializer()).Serialize(jsondata);
+                byte[] data = Encoding.UTF8.GetBytes(inputJson);
 
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
 
@@ -102,10 +106,12 @@ namespace LuisBot.Dialogs
                 request.ProtocolVersion = HttpVersion.Version10;
                 request.Method = "POST";
                 // turn our request string into a byte stream
-                byte[] postBytes = Encoding.UTF8.GetBytes(postdata);
+                byte[] postBytes = Encoding.UTF8.GetBytes(inputJson);
 
                 // this is important - make sure you specify type this way
                 request.ContentType = "application/json; charset=UTF-8";
+                request.Headers.Add("App-Id", "00f45dc3");
+                request.Headers.Add("App-Key", "dc46a176996d0ffbc591052812a9acbe");
                 request.Accept = "application/json";
                 request.ContentLength = postBytes.Length;
                 //request.CookieContainer = Cookies;
@@ -119,23 +125,23 @@ namespace LuisBot.Dialogs
                 // grab te response and print it out to the console along with the status code
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string finalResult;
-                
+
                 using (StreamReader rdr = new StreamReader(response.GetResponseStream()))
                 {
                     finalResult = rdr.ReadToEnd();
 
-                    List<Model.Mention> res= (new JavaScriptSerializer()).Deserialize<List<Model.Mention>>(finalResult);
+                    Parsing res = (new JavaScriptSerializer()).Deserialize<Parsing>(finalResult);
 
-                    if(res.Count>0)
+                    if (res.mentions.Count >= 0)
                     {
-                        foreach(Model.Mention parse in res)
+                        foreach (var men in res.mentions)
                         {
-                            SymptomID = parse.id;
+                            SymptomID = men.id;
                         }
                     }
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw ex;
             }
