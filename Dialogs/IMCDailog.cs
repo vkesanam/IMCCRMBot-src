@@ -87,13 +87,13 @@ namespace LuisBot.Dialogs
             //context.Wait(MessageReceived);
 
             await context.PostAsync("Okay, let me ask you a couple of questions.");
-            context.Wait(MessageReceived);
+            //context.Wait(MessageReceived);
 
-            //PromptDialog.Text(
-            // context: context,
-            // resume: AgeCheck,
-            // prompt: "How old are you?",
-            // retry: "Sorry, I don't understand that.");
+            PromptDialog.Text(
+             context: context,
+             resume: AgeCheck,
+             prompt: "How old are you?",
+             retry: "Sorry, I don't understand that.");
 
 
         }
