@@ -86,8 +86,8 @@ namespace LuisBot.Dialogs
             await context.PostAsync(ID);
             context.Wait(MessageReceived);
 
-            //await context.PostAsync("Okay, let me ask you a couple of questions.");
-            //context.Wait(MessageReceived);
+            await context.PostAsync("Okay, let me ask you a couple of questions.");
+            context.Wait(MessageReceived);
 
             //PromptDialog.Text(
             // context: context,
