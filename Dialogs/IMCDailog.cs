@@ -84,7 +84,7 @@ namespace LuisBot.Dialogs
             string ID=executeParsingAPI(result);
 
             await context.PostAsync(ID);
-            context.Wait(MessageReceived);
+            //context.Wait(MessageReceived);
 
             await context.PostAsync("Okay, let me ask you a couple of questions.");
             context.Wait(MessageReceived);
