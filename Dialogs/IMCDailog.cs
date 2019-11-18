@@ -83,16 +83,19 @@ namespace LuisBot.Dialogs
             var result = await argument;
             string ID=executeParsingAPI(result);
 
-            await context.PostAsync("Okay, let me ask you a couple of questions.");
+            await context.PostAsync(ID);
             context.Wait(MessageReceived);
 
-            PromptDialog.Text(
-             context: context,
-             resume: AgeCheck,
-             prompt: "How old are you?",
-             retry: "Sorry, I don't understand that.");
+            //await context.PostAsync("Okay, let me ask you a couple of questions.");
+            //context.Wait(MessageReceived);
 
-           
+            //PromptDialog.Text(
+            // context: context,
+            // resume: AgeCheck,
+            // prompt: "How old are you?",
+            // retry: "Sorry, I don't understand that.");
+
+
         }
 
         private static string executeParsingAPI(string result)
