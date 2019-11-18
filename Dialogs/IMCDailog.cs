@@ -20,6 +20,7 @@ namespace LuisBot.Dialogs
     public class IMCDailog : LuisDialog<object>
     {
         public string Symptom;
+        public string SymptomID;
 
         public IMCDailog() : base(new LuisService(new LuisModelAttribute(
            ConfigurationManager.AppSettings["LuisAppId"],
@@ -80,9 +81,18 @@ namespace LuisBot.Dialogs
         public async Task SymptomCheck(IDialogContext context, IAwaitable<string> argument)
         {
             var result = await argument;
-            string ID=executeParsingAPI(result);
-            await context.PostAsync(ID);
+            SymptomID=executeParsingAPI(result);
+
+            await context.PostAsync("Okay, let me ask you a couple of questions.");
             context.Wait(MessageReceived);
+
+            PromptDialog.Number(
+             context: context,
+             resume: AgeCheck,
+             prompt: "How old are you?",
+             retry: "Sorry, I don't understand that.");
+
+           
         }
 
         private static string executeParsingAPI(string result)
@@ -136,7 +146,10 @@ namespace LuisBot.Dialogs
                     {
                         foreach (var men in res.mentions)
                         {
-                            SymptomID = men.id;
+                            if(men.choice_id=="present")
+                            {
+                                SymptomID = men.id;
+                            }
                         }
                     }
                 }
@@ -146,6 +159,26 @@ namespace LuisBot.Dialogs
                 throw ex;
             }
             return SymptomID;
+        }
+
+        public async Task AgeCheck(IDialogContext context,IAwaitable<long> PatientAge)
+        {
+            long Age = await PatientAge;
+
+            var feedback = ((Activity)context.Activity).CreateReply("Are you female or male?");
+
+            feedback.SuggestedActions = new SuggestedActions()
+            {
+                Actions = new List<CardAction>()
+                {
+                     new CardAction(){ Title = "Male", Type=ActionTypes.PostBack, Value=$"Male" },
+                     new CardAction(){ Title = "Female", Type=ActionTypes.PostBack, Value=$"Female" }
+                }
+            };
+
+            await context.PostAsync(feedback);
+
+            context.Wait(MessageReceived);
         }
     }
 }
