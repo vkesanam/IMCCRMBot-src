@@ -86,7 +86,7 @@ namespace LuisBot.Dialogs
             await context.PostAsync("Okay, let me ask you a couple of questions.");
             context.Wait(MessageReceived);
 
-            PromptDialog.Number(
+            PromptDialog.Text(
              context: context,
              resume: AgeCheck,
              prompt: "How old are you?",
@@ -161,9 +161,9 @@ namespace LuisBot.Dialogs
             return SymptomID;
         }
 
-        public async Task AgeCheck(IDialogContext context,IAwaitable<long> PatientAge)
+        public async Task AgeCheck(IDialogContext context,IAwaitable<string> PatientAge)
         {
-            long Age = await PatientAge;
+            string Age = await PatientAge;
 
             var feedback = ((Activity)context.Activity).CreateReply("Are you female or male?");
 
