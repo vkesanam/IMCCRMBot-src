@@ -224,10 +224,12 @@
     <Compile Include="CRMConnection.cs" />
     <Compile Include="Dialogs\BasicLuisDialog.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="Dialogs\IMCDailog.cs" />
     <Compile Include="Dialogs\QnAMakerService.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Model\Parsing.cs" />
     <Compile Include="Model\QnAAnswer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
