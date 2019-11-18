@@ -74,20 +74,14 @@ namespace Microsoft.Bot.Sample.LuisBot
         [LuisIntent("None")]
         public async Task NoneIntent(IDialogContext context, LuisResult result)
         {
-            //string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
-            //await context.PostAsync(message);
-            //context.Wait(MessageReceived);
-
-            // Ask the HR knowledge base
-            var qnaMakerAnswer = await hrQnAService.GetAnswer(result.Query);
-            await context.PostAsync($"{qnaMakerAnswer}");
+            string message = "I'm afraid I cannot help you with that. Please try with different keywords.";
+            await context.PostAsync(message);
             context.Wait(MessageReceived);
 
-            //await context.Forward(new QnADialog(), ResumeAfter, context.Activity, CancellationToken.None);
-        }
-        private async Task ResumeAfter(IDialogContext context, IAwaitable<object> result)
-        {
-            context.Done<object>(null);
+            // Ask the HR knowledge base
+            //var qnaMakerAnswer = await hrQnAService.GetAnswer(result.Query);
+            //await context.PostAsync($"{qnaMakerAnswer}");
+            //context.Wait(MessageReceived);
         }
 
         // Go to https://luis.ai and create a new intent, then train/publish your luis app.
