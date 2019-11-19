@@ -21,6 +21,10 @@ namespace LuisBot.Dialogs
     {
         public string Symptom;
         public string SymptomID;
+        public int Age;
+        public string Gender;
+        public static string DiaognsisSympText;
+        public static string DiaognsisSympId;
 
         public IMCDailog() : base(new LuisService(new LuisModelAttribute(
            ConfigurationManager.AppSettings["LuisAppId"],
@@ -81,9 +85,9 @@ namespace LuisBot.Dialogs
         public async Task SymptomCheck(IDialogContext context, IAwaitable<string> argument)
         {
             var result = await argument;
-            string ID=executeParsingAPI(result);
+            SymptomID=executeParsingAPI(result);
 
-            await context.PostAsync(ID);
+            await context.PostAsync(SymptomID);
             //context.Wait(MessageReceived);
 
             await context.PostAsync("Okay, let me ask you a couple of questions.");
@@ -108,7 +112,7 @@ namespace LuisBot.Dialogs
 
                 var jsondata = new
                 {
-                    text = "fever"
+                    text = result
                 };
                 string inputJson = (new JavaScriptSerializer()).Serialize(jsondata);
                 byte[] data = Encoding.UTF8.GetBytes(inputJson);
@@ -164,10 +168,84 @@ namespace LuisBot.Dialogs
             return SymptomID;
         }
 
+        private static string executeDaiognsisAPI(int ageParameter, string genderParameter, string symptomIDParameter)
+        {
+            string SymptomIDResult = "";
+            try
+            {
+
+                string url = "https://api.infermedica.com/v2/diagnosis";
+
+                DiaognisModel jsondata = new DiaognisModel();
+                jsondata.sex = genderParameter;
+                jsondata.age = ageParameter;
+                Evidence res = new Evidence();
+                res.id = symptomIDParameter;
+                res.choice_id = "present";
+
+                jsondata.evidence = new List<Evidence>
+                {
+                    res
+                };
+
+                string inputJson = (new JavaScriptSerializer()).Serialize(jsondata);
+                byte[] data = Encoding.UTF8.GetBytes(inputJson);
+
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+
+                request.KeepAlive = false;
+                request.ProtocolVersion = HttpVersion.Version10;
+                request.Method = "POST";
+                // turn our request string into a byte stream
+                byte[] postBytes = Encoding.UTF8.GetBytes(inputJson);
+
+                // this is important - make sure you specify type this way
+                request.ContentType = "application/json; charset=UTF-8";
+                request.Headers.Add("App-Id", "00f45dc3");
+                request.Headers.Add("App-Key", "dc46a176996d0ffbc591052812a9acbe");
+                request.Headers.Add("Interview-Id", "r8oK9tf83dEtwZm9bBJU");
+                request.Accept = "application/json";
+                request.ContentLength = postBytes.Length;
+                //request.CookieContainer = Cookies;
+                //request.UserAgent = currentUserAgent;
+                Stream requestStream = request.GetRequestStream();
+
+                // now send it
+                requestStream.Write(postBytes, 0, postBytes.Length);
+                requestStream.Close();
+
+                // grab te response and print it out to the console along with the status code
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                string finalResult;
+
+                using (StreamReader rdr = new StreamReader(response.GetResponseStream()))
+                {
+                    finalResult = rdr.ReadToEnd();
+
+                    SymptomsModel symResult = (new JavaScriptSerializer()).Deserialize<SymptomsModel>(finalResult);
+
+                    if (symResult.question.text.Length >= 0)
+                    {
+                        DiaognsisSympText = symResult.question.text;
+                        foreach (var men in symResult.question.items)
+                        {
+                            DiaognsisSympId = men.id;
+                        }
+                    }
+
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            return DiaognsisSympText;
+        }
+
         public async Task AgeCheck(IDialogContext context,IAwaitable<string> PatientAge)
         {
-            var Age = await PatientAge;
-
+            var result = await PatientAge;
+            Age =Convert.ToInt32(result);
             var feedback = ((Activity)context.Activity).CreateReply("Are you female or male?");
 
             feedback.SuggestedActions = new SuggestedActions()
@@ -181,7 +259,60 @@ namespace LuisBot.Dialogs
 
             await context.PostAsync(feedback);
 
-            context.Wait(MessageReceived);
+            context.Wait(DiagnisCheck);
+        }
+        public async Task DiagnisCheck(IDialogContext context,IAwaitable<IMessageActivity> argument)
+        {
+            var GenderResult = await argument;
+            if(GenderResult.Text == "Male")
+            {
+                Gender = "male";
+            }
+            else if(GenderResult.Text == "Female")
+            {
+                Gender = "female";
+            }
+            string result=executeDaiognsisAPI(Age, Gender, SymptomID);
+
+            var feedback = ((Activity)context.Activity).CreateReply(result);
+
+            feedback.SuggestedActions = new SuggestedActions()
+            {
+                Actions = new List<CardAction>()
+                {
+                     new CardAction(){ Title = "Yes", Type=ActionTypes.PostBack, Value=$"present" },
+                     new CardAction(){ Title = "No", Type=ActionTypes.PostBack, Value=$"absent" },
+                     new CardAction(){ Title = "Don't know", Type=ActionTypes.PostBack, Value=$"unknown" }
+                }
+            };
+
+            await context.PostAsync(feedback);
+
+            context.Wait(DiagnisCheck);
+        }
+        public async Task DiagnisRecheck(IDialogContext context,IAwaitable<IMessageActivity> argument)
+        {
+            var result = await argument;
+            if(result.Text=="Yes")
+            {
+                string diaResult = executeDaiognsisAPI(Age, Gender, DiaognsisSympId);
+
+                var feedback = ((Activity)context.Activity).CreateReply(diaResult);
+
+                feedback.SuggestedActions = new SuggestedActions()
+                {
+                    Actions = new List<CardAction>()
+                {
+                     new CardAction(){ Title = "Yes", Type=ActionTypes.PostBack, Value=$"present" },
+                     new CardAction(){ Title = "No", Type=ActionTypes.PostBack, Value=$"absent" },
+                     new CardAction(){ Title = "Don't know", Type=ActionTypes.PostBack, Value=$"unknown" }
+                }
+                };
+
+                await context.PostAsync(feedback);
+
+                context.Wait(DiagnisRecheck);
+            }
         }
     }
 }
